@@ -29,8 +29,7 @@ jobs:
           mkdir -p libs
           curl -L -o libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar \
             "https://github.com/JonathanHuangMTR/Minecraft-Transit-Railway/releases/download/v3.2.2-hotfix-1/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar" \
-            || echo "GitHub download failed, trying Modrinth..." && \
-            curl -L -o libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar \
+            || curl -L -o libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar \
             "https://cdn.modrinth.com/data/eT5MZg8D/versions/3.2.2-hotfix-1/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar"
 
       - name: Generate build files
@@ -65,10 +64,18 @@ jobs:
               minecraft "com.mojang:minecraft:1.18.2"
               mappings "net.fabricmc:yarn:1.18.2+build.4:v2"
               modImplementation "net.fabricmc:fabric-loader:0.14.6"
-              modImplementation "net.fabricmc.fabric-api:fabric-api:0.57.2+1.18.2"
+              modCompileOnly "net.fabricmc.fabric-api:fabric-api:0.77.0+1.18.2"
               modCompileOnly files("libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar")
           }
           EOF
+
+      - name: Patch fabric.mod.json to add fabric dependency
+        run: |
+          cd src/main/resources
+          if [ -f fabric.mod.json ]; then
+            apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
+            jq '.depends.fabric = "*"' fabric.mod.json > tmp && mv tmp fabric.mod.json
+          fi
 
       - name: Build
         run: gradle build --no-daemon
