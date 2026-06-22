@@ -38,10 +38,19 @@ jobs:
 
       - name: Generate build files
         run: |
-          # settings.gradle（不需要插件管理，Loom 插件直接在 build.gradle 里声明）
-          echo "rootProject.name = 'mtr-color-ceilings'" > settings.gradle
+          # settings.gradle - 必须包含 pluginManagement 指向 Fabric 仓库
+          cat > settings.gradle << 'EOF'
+          pluginManagement {
+              repositories {
+                  maven { url 'https://maven.fabricmc.net/' }
+                  gradlePluginPortal()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'mtr-color-ceilings'
+          EOF
 
-          # build.gradle（使用 Mojang 官方映射，无需 Yarn，极简可靠）
+          # build.gradle
           cat > build.gradle << 'EOF'
           plugins {
               id 'fabric-loom' version '0.12.17'
