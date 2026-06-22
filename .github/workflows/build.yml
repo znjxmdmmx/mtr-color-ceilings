@@ -31,7 +31,7 @@ jobs:
 
       - name: Generate build configuration
         run: |
-          # 创建 settings.gradle，配置插件仓库
+          # settings.gradle - 配置插件仓库
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
@@ -43,18 +43,15 @@ jobs:
           rootProject.name = 'mtr-color-ceilings'
           EOF
 
-          # 创建 build.gradle，使用 buildscript 方式加载 Loom
+          # build.gradle - 使用 plugins 块加载 Loom，并强制从 Maven 下载 Minecraft
           cat > build.gradle << 'EOF'
-          buildscript {
-              repositories {
-                  maven { url 'https://maven.fabricmc.net/' }
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'fabric-loom:fabric-loom.gradle.plugin:0.12.17'
-              }
+          plugins {
+              id 'fabric-loom' version '0.12.17'
           }
-          apply plugin: 'fabric-loom'
+
+          loom {
+              mavenMinecraft = true
+          }
 
           sourceCompatibility = JavaVersion.VERSION_17
           targetCompatibility = JavaVersion.VERSION_17
@@ -76,11 +73,8 @@ jobs:
           }
           EOF
 
-          # 创建 gradle.properties，开启 Maven 镜像下载 Minecraft
-          cat > gradle.properties << 'EOF'
-          loom.maven_minecraft=true
-          org.gradle.jvmargs=-Xmx2048M
-          EOF
+          # gradle.properties - 分配足够内存
+          echo "org.gradle.jvmargs=-Xmx2048M" > gradle.properties
 
       - name: Download MTR dependency
         run: |
