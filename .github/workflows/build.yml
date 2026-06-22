@@ -10,8 +10,13 @@ jobs:
 
       - name: Extract addon source
         run: |
-          unzip colorceilings_addon.zip -d .
-          rm colorceilings_addon.zip
+          unzip colorceilings_addon.zip
+          # 如果压缩包内有一层文件夹，把内容移到当前目录
+          if [ -d colorceilings_addon ]; then
+            mv colorceilings_addon/* .
+            rmdir colorceilings_addon
+          fi
+          rm -f colorceilings_addon.zip
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -71,9 +76,9 @@ jobs:
 
       - name: Patch fabric.mod.json to add fabric dependency
         run: |
-          cd src/main/resources
+          # fabric.mod.json 现在在根目录下
+          apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
           if [ -f fabric.mod.json ]; then
-            apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
             jq '.depends.fabric = "*"' fabric.mod.json > tmp && mv tmp fabric.mod.json
           fi
 
