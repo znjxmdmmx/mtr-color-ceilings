@@ -11,7 +11,6 @@ jobs:
       - name: Extract addon source
         run: |
           unzip colorceilings_addon.zip
-          # 如果压缩包内有一层文件夹，把内容移到当前目录
           if [ -d colorceilings_addon ]; then
             mv colorceilings_addon/* .
             rmdir colorceilings_addon
@@ -62,7 +61,8 @@ jobs:
 
           repositories {
               mavenCentral()
-              maven { url = "https://maven.fabricmc.net/" }
+              maven { url "https://maven.fabricmc.net/" }
+              maven { url "https://libraries.minecraft.net/" }
           }
 
           dependencies {
@@ -76,14 +76,13 @@ jobs:
 
       - name: Patch fabric.mod.json to add fabric dependency
         run: |
-          # fabric.mod.json 现在在根目录下
           apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
           if [ -f fabric.mod.json ]; then
             jq '.depends.fabric = "*"' fabric.mod.json > tmp && mv tmp fabric.mod.json
           fi
 
       - name: Build
-        run: gradle build --no-daemon
+        run: gradle build --no-daemon --stacktrace
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
