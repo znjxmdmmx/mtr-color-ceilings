@@ -24,9 +24,28 @@ jobs:
         with:
           gradle-version: '7.5.1'
 
+      - name: Download MTR dependency
+        run: |
+          mkdir -p libs
+          curl -L -o libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar \
+            "https://github.com/JonathanHuangMTR/Minecraft-Transit-Railway/releases/download/v3.2.2-hotfix-1/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar" \
+            || echo "GitHub download failed, trying Modrinth..." && \
+            curl -L -o libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar \
+            "https://cdn.modrinth.com/data/eT5MZg8D/versions/3.2.2-hotfix-1/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar"
+
       - name: Generate build files
         run: |
-          echo "rootProject.name = 'mtr-color-ceilings'" > settings.gradle
+          cat > settings.gradle << 'EOF'
+          pluginManagement {
+              repositories {
+                  maven { url 'https://maven.fabricmc.net/' }
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          rootProject.name = 'mtr-color-ceilings'
+          EOF
+
           cat > build.gradle << 'EOF'
           plugins {
               id 'fabric-loom' version '0.12.17'
