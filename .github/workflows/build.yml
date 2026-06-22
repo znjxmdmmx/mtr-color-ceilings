@@ -24,10 +24,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Gradle 7.5.1
+      - name: Set up Gradle 8.10
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '7.5.1'
+          gradle-version: '8.10'
 
       - name: Generate build configuration
         run: |
@@ -43,10 +43,10 @@ jobs:
           rootProject.name = 'mtr-color-ceilings'
           EOF
 
-          # build.gradle (不要写 loom { ... } 块，Loom 0.12.17 会用 gradle.properties)
+          # build.gradle (使用 Loom 1.0.22 + Mojang 官方映射，完全走 Maven)
           cat > build.gradle << 'EOF'
           plugins {
-              id 'fabric-loom' version '0.12.17'
+              id 'fabric-loom' version '1.0.22'
           }
 
           sourceCompatibility = JavaVersion.VERSION_17
@@ -62,18 +62,15 @@ jobs:
 
           dependencies {
               minecraft "com.mojang:minecraft:1.18.2"
-              mappings "net.fabricmc:yarn:1.18.2+build.4:v2"
-              modImplementation "net.fabricmc:fabric-loader:0.14.6"
+              mappings loom.officialMojangMappings()
+              modImplementation "net.fabricmc:fabric-loader:0.14.21"
               modCompileOnly "net.fabricmc.fabric-api:fabric-api:0.77.0+1.18.2"
               modCompileOnly files("libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar")
           }
           EOF
 
-          # gradle.properties – 启用 Maven 下载 Minecraft
-          cat > gradle.properties << 'EOF'
-          loom.maven_minecraft=true
-          org.gradle.jvmargs=-Xmx2048M
-          EOF
+          # gradle.properties
+          echo "org.gradle.jvmargs=-Xmx2048M" > gradle.properties
 
       - name: Download MTR dependency
         run: |
