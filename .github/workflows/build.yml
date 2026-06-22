@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract source if needed
+      - name: Extract source if zip exists
         run: |
           if [ -f colorceilings_addon.zip ]; then
             unzip -o colorceilings_addon.zip
@@ -29,8 +29,9 @@ jobs:
         with:
           gradle-version: '7.5.1'
 
-      - name: Generate correct settings.gradle and build.gradle
+      - name: Generate build configuration
         run: |
+          # 创建 settings.gradle，配置插件仓库
           cat > settings.gradle << 'EOF'
           pluginManagement {
               repositories {
@@ -42,6 +43,7 @@ jobs:
           rootProject.name = 'mtr-color-ceilings'
           EOF
 
+          # 创建 build.gradle，使用 buildscript 方式加载 Loom
           cat > build.gradle << 'EOF'
           buildscript {
               repositories {
@@ -74,14 +76,11 @@ jobs:
           }
           EOF
 
-      - name: Cache Minecraft jars
-        run: |
-          LOOM_CACHE=$HOME/.gradle/caches/fabric-loom/1.18.2
-          mkdir -p "$LOOM_CACHE"
-          curl -L -o "$LOOM_CACHE/minecraft-client.jar" \
-            "https://launcher.mojang.com/v1/objects/2e9a3e3107cca00d6bc9c97bf7f149aae163ef21/client.jar"
-          curl -L -o "$LOOM_CACHE/minecraft-server.jar" \
-            "https://launcher.mojang.com/v1/objects/2e9a3e3107cca00d6bc9c97bf7f149aae163ef21/server.jar"
+          # 创建 gradle.properties，开启 Maven 镜像下载 Minecraft
+          cat > gradle.properties << 'EOF'
+          loom.maven_minecraft=true
+          org.gradle.jvmargs=-Xmx2048M
+          EOF
 
       - name: Download MTR dependency
         run: |
