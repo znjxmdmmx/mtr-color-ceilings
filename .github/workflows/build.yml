@@ -38,17 +38,10 @@ jobs:
 
       - name: Generate build files
         run: |
-          cat > settings.gradle << 'EOF'
-          pluginManagement {
-              repositories {
-                  maven { url 'https://maven.fabricmc.net/' }
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-          rootProject.name = 'mtr-color-ceilings'
-          EOF
+          # settings.gradle（不需要插件管理，Loom 插件直接在 build.gradle 里声明）
+          echo "rootProject.name = 'mtr-color-ceilings'" > settings.gradle
 
+          # build.gradle（使用 Mojang 官方映射，无需 Yarn，极简可靠）
           cat > build.gradle << 'EOF'
           plugins {
               id 'fabric-loom' version '0.12.17'
@@ -62,12 +55,11 @@ jobs:
           repositories {
               mavenCentral()
               maven { url "https://maven.fabricmc.net/" }
-              maven { url "https://libraries.minecraft.net/" }
           }
 
           dependencies {
               minecraft "com.mojang:minecraft:1.18.2"
-              mappings "net.fabricmc:yarn:1.18.2+build.4:v2"
+              mappings loom.officialMojangMappings()
               modImplementation "net.fabricmc:fabric-loader:0.14.6"
               modCompileOnly "net.fabricmc.fabric-api:fabric-api:0.77.0+1.18.2"
               modCompileOnly files("libs/MTR-fabric-1.18.2-3.2.2-hotfix-1.jar")
@@ -82,7 +74,7 @@ jobs:
           fi
 
       - name: Build
-        run: gradle build --no-daemon --stacktrace
+        run: gradle build --no-daemon
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
